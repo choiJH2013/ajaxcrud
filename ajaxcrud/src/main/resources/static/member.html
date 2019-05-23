@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Member</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+<script type="text/javascript">
+
+$(document).ready(function(){
+
+	
+	
+	// 목록을 클릭시 발생
+    $('#btnList').on('click',function(){
+    	console.log('#btnList click');
+    	
+		$.ajax({
+
+			url : '/getMembers',
+			type : 'Post',
+			success:function(data){
+	            $('#list').empty(); //내용을 비우는 매서드
+	            $(data).each(function(index,item){
+	            	// 사람목록
+	                $('#list').append('<tr>');
+	                $('#list').append('<td><input type="checkbox" class="ck" value="'+item.id+'"></td>');
+	                $('#list').append('<td>'+item.id+'</td>');
+	                $('#list').append('<td>'+item.pw+'</td>');
+	                $('#list').append('<td>'+item.name+'</td>');
+	                $('#list').append('<td>'+item.age+'</td>');
+	                $('#list').append('<td>'+item.gender+'</td>');
+	                $('#list').append('</tr>');
+	               
+	             });
+	         }
+		});
+    });
+	
+    // 추가
+    $('#btnAdd').on('click',function(){
+    	console.log('#btnAdd click');
+    	
+    	if($('#id').val() == ''){
+			alert('id를 입력해주세요');
+			
+		} else if($('#pw').val() == '') {
+			alert('pw를 입력해주세요');
+			
+		} else if($('#name').val() == '') {
+			alert('name를 입력해주세요');
+			
+		} else if($('#age').val() == '') {
+			alert('age를 입력해주세요');
+			
+		} else {
+    	
+			let id = $('#id').val();
+			let pw = $('#pw').val();
+			let name = $('#name').val();
+			let age = $('#age').val();
+			let gender = $('#gender').val();
+			
+			$.ajax({
+				
+				url : '/addMember',
+				type : 'Post',
+				data:{'id':id,'pw':pw,'name':name,'age':age,'gender':gender},
+				success : function() {
+					$('#btnList').trigger('click');  // trigger() 이벤트를 대신해준다
+				}
+			});		
+		}
+    });
+
+    // 삭제
+    $('#btnRemove').on('click',function(){ //  $('#btnRemove').click 으로해도된다  / 클릭시
+		console.log('#btnRemove click');
+		
+		var ck = new Array(); // let ck = [];  둘다 배열만듬   #id태그 가져옴  ck는 배열
+        $('.ck:checked').each(function(index,item){
+            ck.push($(item).val());
+        });
+        
+		$.ajax({
+		
+			url : '/removeMember',
+			type : 'Post',	// get는 배열객체를 받을 수 없다
+			data:{'ck':ck},
+			success:function(){
+                alert('삭제완료');
+                $('#btnList').trigger('click');
+            }
+			
+		});
+    });
+    
+		
+    // 수정
+    $('#btnModify').on('click',function(){
+    	console.log('#btnModify click');
+
+		if($('#id').val() == ''){
+			alert('id를 입력해주세요');
+			
+		} else if($('#pw').val() == '') {
+			alert('pw를 입력해주세요');
+			
+		} else if($('#name').val() == '') {
+			alert('name를 입력해주세요');
+			
+		} else if($('#age').val() == '') {
+			alert('age를 입력해주세요');
+			
+		} else {
+			
+			let id = $('#id').val();
+			let pw = $('#pw').val();
+			let name = $('#name').val();
+			let age = $('#age').val();
+			let gender = $('#gender').val();
+	    
+			$.ajax({
+				
+				url : '/modifyById',
+				type : 'Post',
+				data:{'id':id,'pw':pw,'name':name,'age':age,'gender':gender},
+				success : function() {
+					$('#btnList').trigger('click');  // trigger() 이벤트를 대신해준다
+				}	
+			});
+		}
+    });	
+       
+    
+    $('#btnList').trigger('click');
+});
+</script>
+</head>
+	
+<body>
+<h1>맴버 페이지</h1>
+
+	<table border="1">
+		<thead>
+			<tr>
+				<th>id</th>
+				<th>pw</th>
+				<th>name</th>
+				<th>age</th>
+				<th>gender</th>
+				<th>추가</th>
+				<th>수정</th>
+			</tr>
+		</thead>
+		
+		<tbody>
+			<tr>
+				<td><input type="text" id="id"></td>
+				<td><input type="password" id="pw"></td>
+				<td><input type="text" id="name"></td>
+				<td><input type="text" id="age"></td>
+				<td><select id="gender">
+						<option value="m">남</option>
+						<option value="f">여</option>
+				</select></td>
+				
+				<td><button type="button" id="btnAdd">add</button></td>
+				
+				<td><button type="button" id="btnModify">modify</button></td>
+				
+			</tr>
+		</tbody>
+	</table>
+
+	<button type="button" id="btnList">회원리스트</button>
+	<table border="1">
+	
+		<thead>
+			<tr>
+				<th></th>
+				<th>id</th>
+				<th>pw</th>
+				<th>name</th>
+				<th>age</th>
+				<th>gender</th>
+			</tr>
+		</thead>
+		
+		<tbody id="list">
+		
+		</tbody>
+		
+	</table>
+	
+	<button type="button" id="btnRemove">remove</button>
+
+</body>
+</html>

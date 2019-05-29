@@ -6,23 +6,54 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
 <script type="text/javascript">
-
+/* 
+JavaScript의 유효범위(Scope(스코프))에는 다른 언어의 유효범위와는 다르다.
+유효범위의 종류는 크게 2가지이며 전역 유효범위(Global Scope),지역 유효범위(Local Scope)로 나뉜다.
+ */
+ 
+// 모든 html 페이지가 화면에 뿌려지고 나서 저 ready안에 서술된 이벤트들이 동작준비   $(function(){ 줄일 수 있다.
 $(document).ready(function(){
-
 	
+	// 페이지 이동을 위한 변수 선언
+	let startPage;
+	console.log('startPage : ' + startPage);
 	
-	// 목록을 클릭시 발생
+	// 페이징처리  변수 선언  : 유효범위를 제어할 수 있으면 접근성과 생존기간을 제어할 수 있다.
+	const firstPage = 1; // 첫페이지는 1로 고정 : const로 선언된 변수는 값을 수정할 수 없는 상수처리 
+	let lastPage; // 마지막 페이지
+	let previousPage; // 이전
+	let nextPage; // 다음
+	
+	// 태그 ID가  btnList인 녀석을 클릭이벤트를 주었을때  	$("#btnList").click(function(){ 내용 }); 이렇게도 사용할 수 있다.
     $('#btnList').on('click',function(){
-    	console.log('#btnList click');
+    	console.log('#btnList click'); 	//  개발자 도구 콘솔창에 표시한다
     	
-		$.ajax({
+		$.ajax({  // ajax를 사용한다. jquery가 필요
 
-			url : '/getMembers',
-			type : 'Post',
-			success:function(data){
-	            $('#list').empty(); //내용을 비우는 매서드
-	            $(data).each(function(index,item){
-	            	// 사람목록
+			url : '/getMembers', // 요청경로
+			type : 'Post',	// 요청방식
+			data : {'startPage' : startPage},
+			
+			success: function(data){  // 비동기 요청 성공시 실행 / data 받아온 데이터 : (list, startPage, lastPage)
+	           
+				// 데이터를 잘 받아왔는지 확인
+				console.log('◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆');
+				console.log('맴버 리스트 data.list', data.list); // 멤버 목록 데이터
+				console.log("현재 페이지 data.startPage : " + data.startPage); // 현재 페이지
+				console.log("마지막 페이지 data.lastPage : " + data.lastPage); // 마지막(전체) 페이지
+				console.log('◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆');
+
+				
+				// 페이지 이동 시 기존내용을 없애고 새로운 내용을보이기 위해 지운다
+				$('#list').empty(); // 태그 ID가 list의 내용을 비우는 매서드
+				
+	            $(data.list).each(function(index,item){  // 받아온 데이터값에서 리스트값을 뿌려준다
+				/*	before : 선택한 요소의 앞에 내용 삽입
+	    	       	after : 선택한 요소의 뒤에 내용 삽입
+	            	prepend : 선택한요소의 자식요소 앞에 내용삽입
+	            	append : 선택한요소의 자식요소 뒤에 내용삽입 */
+	            	
+	            	// 리스트 목록
 	                $('#list').append('<tr>');
 	                $('#list').append('<td><input type="checkbox" class="ck" value="'+item.id+'"></td>');
 	                $('#list').append('<td>'+item.id+'</td>');
@@ -31,8 +62,80 @@ $(document).ready(function(){
 	                $('#list').append('<td>'+item.age+'</td>');
 	                $('#list').append('<td>'+item.gender+'</td>');
 	                $('#list').append('</tr>');
-	               
 	             });
+				
+	    	    // 페이지 이동을 위해 사용할 변수 셋팅
+				startPage = data.startPage; // 현재 페이지
+				lastPage = data.lastPage; // 마지막 페이지
+				previousPage = startPage - 1; // 이전
+				nextPage = startPage + 1; // 다음
+				
+				// 받아온 데이터 확인
+				console.log('[ 처음/이전/다음/마지막 페이지 이동을 위한 데이터 ] ');
+				console.log('startPage : ' + startPage);  // 현재
+				console.log('previousPage: ' + previousPage); // 이전
+				console.log('nextPage: ' + nextPage); // 다음
+				console.log('lastPage: ' + lastPage); // 마지막
+				
+				/* 
+				.hide()는 선택한 요소를 사라지게 합니다.
+				.hide( duration [, easing ] [, complete ] )
+				duration : 사라지는 데 걸리는 시간입니다. slow, fast, 숫자를 넣을 수 있다. 숫자의 단위는 1000분의 1초 / 기본값은 400
+				easing : 사라지는 방식 swing과 linear가 있으며. 기본값은 swing
+				complete : 사라진 다음 실행할 함수를 넣을 수 있다.	
+				
+				*/
+				if(startPage > 1) { // 페이지가 1보다 크면
+					$('.page-firstPage-previousPage').show("slow");
+				} else {
+					$('.page-firstPage-previousPage').hide(1000, "linear");
+				}
+				
+				if(startPage < lastPage) { // 페이지가 마지막 페이지보다 작을때 / 예 : 데이터가 35개이며 10개씩 보여주면 라스트페이지는4 이다. 알고리즘은 service 참조
+					$('.page-nextPage-lastPage').show("slow");
+				} else {
+					$('.page-nextPage-lastPage').hide(1000, "linear");
+				}
+				
+				// 이벤트 버블링 : 버튼 클릭시 그 버튼을 가지고 있는 부모 요소에 이미 클릭 이벤트가 존재하는 경우 부모 요소의 이벤트도 함께 실행되는 문제점
+				// 이벤트 버블링 방지 : 이벤트를 해제하면 된다 대표적으로 removeEventListener(), off(), unbind()를 사용  / jquery 버전이 1.7이하인 곳은 off() 메소드를 지원하지 않는다.
+				/*  
+				태그 Id가 test인 것 을 클릭시 경고문구 출력 그후 test이벤트 삭제 버튼을 눌러도 이벤트실행이 안됨.     
+			    $('#test').on('click', function(){
+			    	alert("클릭!!!");
+			    	$('#test').off('click');
+			    });
+				 */
+				// 처음,이전,다음,마지막 버튼 이벤트 처리
+				// 처음버튼  
+				$('.firstPage').unbind("click"); // 이벤트 버블링 방지
+				$('.firstPage').click(function(){ // 클래스를 클릭시 
+					console.log('처음 버튼 클릭'); // 콘솔창 표시
+					startPage = firstPage; // 값을 대입한다 그후
+					$('#btnList').trigger('click'); // 태그 ID가 btnList를 대신 클릭해줘서 리스트를 뿌려준다.
+				});
+				// 이전버튼
+				$('.previousPage').unbind("click");
+				$('.previousPage').click(function(){
+					console.log('이전 버튼 클릭');
+					startPage = previousPage;
+					$('#btnList').trigger('click');
+				});
+				// 다음버튼
+				$('.nextPage').unbind("click");
+				$('.nextPage').click(function() {
+					console.log('다음버튼 클릭');
+					startPage = nextPage;
+					$('#btnList').trigger('click');
+				});
+				// 마지막버튼
+				$('.lastPage').unbind("click");
+				$('.lastPage').click(function(){
+					console.log('마지막 버튼 클릭');
+					startPage = lastPage;
+					$('#btnList').trigger('click');
+				});
+				
 	         }
 		});
     });
@@ -134,13 +237,15 @@ $(document).ready(function(){
        
     
     $('#btnList').trigger('click');
+
+    
 });
+
 </script>
 </head>
 	
 <body>
 <h1>맴버 페이지</h1>
-
 	<table border="1">
 		<thead>
 			<tr>
@@ -192,8 +297,20 @@ $(document).ready(function(){
 		</tbody>
 		
 	</table>
+	<button type="button" id="btnRemove">remove</button>	 <!-- 삭제 버튼 -->
 	
-	<button type="button" id="btnRemove">remove</button>
-
+	<div>
+		<span class="page-firstPage-previousPage">
+			<!-- 처음,이전 태그  --> 
+			<a class="firstPage" href="#">처음</a>
+			<a class="previousPage" href="#">이전</a>
+		</span>
+				
+		<span class="page-nextPage-lastPage">
+			<!-- 다음,마지막 태그 --> 
+			<a class="nextPage" href="#">다음</a>
+			<a class="lastPage" href="#">끝</a>
+		</span>
+	</div>	
 </body>
 </html>

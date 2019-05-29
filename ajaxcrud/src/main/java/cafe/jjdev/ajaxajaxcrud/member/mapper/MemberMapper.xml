@@ -2,7 +2,7 @@
  
 <mapper namespace="cafe.jjdev.ajaxajaxcrud.member.mapper.MemberMapper">
 	<!-- 총인원  -->
-	<select id="selectMemberCount" resultType="">
+	<select id="selectMemberCount" resultType="int">
 		SELECT
 			count(*)
 		FROM
@@ -22,7 +22,8 @@
 		ORDER BY
 			age desc
 		LIMIT
-			#{startRow},10
+			#{startRow},#{rowPerPage}
+			
 
 	
 	</select>
